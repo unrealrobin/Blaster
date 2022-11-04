@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "BlasterEditor Editor Win64 Development (Blaster)",
+            "intelliSenseMode": "msvc-x64",
+            "compileCommands": "C:\\Users\\rlifs\\Desktop\\Home\\Unreal\\Blaster\\.vscode\\compileCommands_Blaster.json",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        },
+        {
+            "name": "Win32",
+            "intelliSenseMode": "msvc-x64",
+            "compileCommands": "C:\\Users\\rlifs\\Desktop\\Home\\Unreal\\Blaster\\.vscode\\compileCommands_Default.json",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

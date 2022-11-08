@@ -108,7 +108,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	{
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
-
+	
 	FVector2d CrosshairLocation(ViewportSize.X/2.f, ViewportSize.Y/2.f);
 	FVector CrosshairWorldPosition;
 	FVector CrosshairWorldDirection;

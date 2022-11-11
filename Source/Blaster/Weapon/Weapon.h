@@ -80,6 +80,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACasing> CasingClass;
+
+	
+
 public:
 
 	void SetWeaponState(EWeaponState State);

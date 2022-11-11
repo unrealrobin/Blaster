@@ -9,7 +9,11 @@
 #include "Animation/AnimationAsset.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Casing.h"
+#include "InterchangeResult.h"
+#include "SAdvancedRotationInputBox.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "EnvironmentQuery/EnvQueryTypes.h"
+#include "Math/UnrealMathUtility.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -145,14 +149,22 @@ void AWeapon::Fire(const FVector& HitTarget)
 			FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
 			UWorld* World = GetWorld();
 			FActorSpawnParameters SpawnParams;
+			
+			
 			if(World)
 			{
+				float RandomNumber = FMath::RandRange(0.f, 180.f);
+				FRotator RandomRotation = FRotator::ZeroRotator;
+				RandomRotation.Roll = RandomNumber;
+				FRotator ShellRotation = SocketTransform.GetRotation().Rotator() + RandomRotation;
+				
 				World->SpawnActor<ACasing>(
 					CasingClass,
 					SocketTransform.GetLocation(),
-					SocketTransform.GetRotation().Rotator()
+					ShellRotation
 				);
 			}
+			
 		}
 	}
 }

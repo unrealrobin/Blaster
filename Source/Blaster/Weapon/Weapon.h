@@ -34,6 +34,22 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 	virtual void Fire(const FVector& HitTarget);
 
+	/**
+	 * Textures for the weapon crosshairs
+	 */
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+	class UTexture2D* CrosshairsCenter;
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+	UTexture2D* CrosshairsTop;
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+	UTexture2D* CrosshairsBottom;
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+	UTexture2D* CrosshairsLeft;
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+	UTexture2D* CrosshairsRight;
+
+
 protected:
 	
 	virtual void BeginPlay() override;
@@ -82,7 +98,6 @@ private:
 	TSubclassOf<class ACasing> CasingClass;
 
 	
-
 public:
 
 	void SetWeaponState(EWeaponState State);

@@ -45,10 +45,14 @@ protected:
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
+	void SetHUDCrosshairs(float DeltaTime);
+
 private:
 
 	class ABlasterCharacter* Character; //setting a variable here so that we dont have to keep casting
-
+	class ABlasterPlayerController* Controller; 
+	class ABlasterHUD* HUD;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 

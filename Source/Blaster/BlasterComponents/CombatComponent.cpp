@@ -86,12 +86,11 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			}
 
 			//Calculate Crosshair Spread
-
 			//[0.600] -> [0,1]
-			//How is an FVector2d a Range?
 			FVector2d WalkSpeedRange(0.f, Character->GetCharacterMovement()->MaxWalkSpeed);
 			FVector2d VelocityMultiplyerRange(0.f, 1.f);
 			FVector Velocity = Character->GetVelocity();
+			// We just 0 out the Z Variable
 			Velocity.Z = 0;
 			CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplyerRange, Velocity.Size());
 

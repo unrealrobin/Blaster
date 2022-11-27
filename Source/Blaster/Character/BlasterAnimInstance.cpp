@@ -75,5 +75,26 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+
+		if(BlasterCharacter->IsLocallyControlled())
+		{
+			bLocallyControlled = true;
+			//Getting the RightHands Location to Fix Weapon Angle
+			FTransform RightHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("hand_r"), ERelativeTransformSpace::RTS_World);
+			//Getting the Rotation from the Right Hand to the Hit Target (Where we want to aim)
+			RightHandRotation =  UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), (RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - BlasterCharacter->GetHitTarget())));
+	
+		}
+		
+		//Draw a debug line to correct weapon angle
+		//Get Locastion of Muzzle Tip (Transform)
+		FTransform MuzzleTipTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World);
+		//Get the Rotation of the X Axis from the MuzzleTipTransfform Rotation
+		FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
+		//Draw a red debug line from the Muzzle Tip to the 1000.f units from the MuzzleX Location. (We add it to the XTransform so it moves the point out 1000.f units in the X)
+		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleX * 1000.f, FColor::Red);
+		//Draw a Blue debug line from the muzzle to the Hit Target
+		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Blue);
 	}
 }

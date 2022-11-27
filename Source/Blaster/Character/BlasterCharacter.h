@@ -78,6 +78,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	class UAnimMontage* FireWeaponMontage;
 
+	
+
 public:	
 	
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -87,4 +89,7 @@ public:
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; };
 	AWeapon* GetEquippedWeapon();
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; };
+
+	//Used for Debugging
+	FVector GetHitTarget() const;
 };

@@ -51,6 +51,16 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	SetHUDCrosshairs(DeltaTime);
+
+	//For Debuging Weapon Angle
+	if(Character && Character->IsLocallyControlled())
+	{
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		HitTarget = HitResult.ImpactPoint;
+		//Now our Blaster Anim Instance needs to know the Hit Target to draw another debug line.
+	}
+	
 }
 
 void UCombatComponent::SetHUDCrosshairs(float DeltaTime)

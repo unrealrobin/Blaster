@@ -13,7 +13,6 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
 
-// Sets default values
 ABlasterCharacter::ABlasterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -57,7 +56,6 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 }
 
-// Called when the game starts or when spawned
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -70,12 +68,8 @@ void ABlasterCharacter::Tick(float DeltaTime)
 
 	AimOffset(DeltaTime);
 	
-
 }
 
-
-
-// Called to bind functionality to input
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 { 
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -330,6 +324,13 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	{
 		Combat->EquipWeapon(OverlappingWeapon);
 	}
+}
+
+FVector ABlasterCharacter::GetHitTarget() const
+{
+	if(Combat == nullptr) return FVector();
+
+	return Combat->HitTarget;
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

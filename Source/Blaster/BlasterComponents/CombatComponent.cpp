@@ -12,6 +12,7 @@
 #include "DrawDebugHelpers.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/HUD/BlasterHUD.h"
+#include "Camera/CameraComponent.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -41,7 +42,13 @@ void UCombatComponent::BeginPlay()
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-
+		//GetFollowCamera() is a Getter Function we Created to Return the Camera Component (BlasterCharacter.h)
+		if( Character->GetFollowCamera())
+		{
+			// Returns the Camera Field of View and Stores it in a Variable
+			DefaultFOV = Character->GetFollowCamera()->FieldOfView;
+			CurrentFOV = DefaultFOV;
+		}
 	}
 	
 }
@@ -50,17 +57,16 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	SetHUDCrosshairs(DeltaTime);
-
-	//For Debuging Weapon Angle
+	
 	if(Character && Character->IsLocallyControlled())
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		HitTarget = HitResult.ImpactPoint;
-		//Now our Blaster Anim Instance needs to know the Hit Target to draw another debug line.
+		
+		SetHUDCrosshairs(DeltaTime);
+		InterpFOV(DeltaTime);
 	}
-	
 }
 
 void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
@@ -119,6 +125,26 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			HUD->SetHUDPackage(HUDPackage);
 		}
 		
+	}
+}
+
+void UCombatComponent::InterpFOV(float DeltaTime)
+{
+	if(EquippedWeapon == nullptr) return;
+	//Setting FOV Variable based on whether or not we are aiming.
+	if(bAiming)
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomedFOV(), DeltaTime, EquippedWeapon->GetZoomedInterpSpeed());
+	}
+	else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterpSpeed);
+	}
+
+	//Setting the Camera FOV to our Stored FOV Value each frame.
+	if(Character && Character->GetFollowCamera())
+	{
+		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
 	}
 }
 

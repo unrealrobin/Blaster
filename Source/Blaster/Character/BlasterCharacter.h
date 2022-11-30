@@ -92,4 +92,6 @@ public:
 
 	//Used for Debugging
 	FVector GetHitTarget() const;
+
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;};
 };

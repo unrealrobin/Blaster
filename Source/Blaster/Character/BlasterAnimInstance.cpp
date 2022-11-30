@@ -83,8 +83,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 			//Getting the RightHands Location to Fix Weapon Angle
 			FTransform RightHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("hand_r"), ERelativeTransformSpace::RTS_World);
 			//Getting the Rotation from the Right Hand to the Hit Target (Where we want to aim)
-			RightHandRotation =  UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), (RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - BlasterCharacter->GetHitTarget())));
-	
+			FRotator LookAtRotation =  UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), (RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - BlasterCharacter->GetHitTarget())));
+			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaTime, 30.f);
 		}
 		
 		//Draw a debug line to correct weapon angle

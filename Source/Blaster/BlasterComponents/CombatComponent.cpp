@@ -245,6 +245,14 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	{
 		//the 3D world postision corresponding to the location at the center of our screen
 		FVector Start = CrosshairWorldPosition;
+
+		//Moving Start of Trace to in front of Character
+		if(Character)
+		{
+			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
+			
+		}
 		
 		// The Start location pushed out in the World Direction
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;

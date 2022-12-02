@@ -60,6 +60,16 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 }
 
+void ABlasterCharacter::OnRep_ReplicatedMovement()
+{
+	Super::OnRep_ReplicatedMovement();
+	SimProxiesTurn();
+	
+	//This only gets fired when we are moving, but if we are standing still we still want this function to fire regularly.
+	//So we track the time since the last call in our Tick function and force call it after a certain time frame
+	TimeSinceLastMoveReplication = 0.f;
+}
+
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -70,7 +80,20 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	AimOffset(DeltaTime);
+	if(GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		AimOffset(DeltaTime);
+	}
+	else
+	{
+		TimeSinceLastMoveReplication += DeltaTime;
+		if(TimeSinceLastMoveReplication > 0.25f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
+	
 	HideCameraIfCharacterClose();
 }
 
@@ -219,18 +242,28 @@ void ABlasterCharacter::AimButtonReleased()
 	}
 }
 
+void ABlasterCharacter::CalculateAO_Pitch()
+{
+	AO_Pitch = GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		//map pitch from [270-360) to [-90,0)
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
+}
+
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
-	if (Combat && Combat->EquippedWeapon == nullptr) return; //if no weapon equipped, return
-
-	FVector Velocity = GetVelocity();
-	Velocity.Z = 0.f;
-	float Speed = Velocity.Size();
+	if (Combat && Combat->EquippedWeapon == nullptr) return; 
+	
+	float Speed = CalculateSpeed();
 	bool bIsInAir = GetCharacterMovement()->IsFalling();
 
 	if (Speed == 0.f && !bIsInAir) //standing still & Not Falling
 	{
-
+		bRotateRootBone = true;
 		bUseControllerRotationYaw = false;
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
@@ -247,6 +280,7 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 
 	if (Speed > 0.f || bIsInAir) // Running or Jumping
 	{
+		bRotateRootBone = false;
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 
@@ -254,16 +288,53 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
 
-	AO_Pitch = GetBaseAimRotation().Pitch;
-	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	CalculateAO_Pitch();
+
+
+}
+
+void ABlasterCharacter::SimProxiesTurn()
+{
+	//handle turning for simulated proxies
+
+	//only when we have a weapon equipped
+	if(Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+	bRotateRootBone = false;
+	float Speed = CalculateSpeed();
+	if(Speed > 0.f)
 	{
-		//map pitch from [270-360) to [-90,0)
-		FVector2D InRange(270.f, 360.f);
-		FVector2D OutRange(-90.f, 0.f);
-		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
 	}
 
-
+	//Calculating the Difference in rotation From Last Frame
+	ProxyRotationLastFrame = ProxyRotation;
+	ProxyRotation = GetActorRotation();
+	ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
+	
+	UE_LOG(LogTemp, Warning, TEXT("Proxy Yaw: %f"), ProxyYaw);
+	if(FMath::Abs(ProxyYaw) > TurnThreshold)
+	{
+		//Means Proxy Yaw is positive and turning right
+		if(ProxyYaw > TurnThreshold)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Right;
+		}
+		//Means Proxy Yaw is less Negative and Turning Left
+		else if(ProxyYaw < -TurnThreshold)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Left;
+		}
+		//Proxy Yaw is still within the TurnThreshold and is NOT turning.
+		else
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		}
+		return;
+	}
+	//Default Behavior, Haven't Turned Enough Since Last Frame
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	
 }
 
 void ABlasterCharacter::FireButtonPressed()
@@ -378,6 +449,13 @@ void ABlasterCharacter::HideCameraIfCharacterClose()
 		}
 	}
 	
+}
+
+float ABlasterCharacter::CalculateSpeed()
+{
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f;
+	return Velocity.Size();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

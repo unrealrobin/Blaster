@@ -45,7 +45,9 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bAiming = BlasterCharacter->IsAiming();
 
 	TurningInPlace = BlasterCharacter->GetTurningInPlace();
-
+	
+	bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
+	
 	//Offset Yaw for Strafing ---
 	//returns the character rotation angles based on the World Rotation. 0-180 & -1-(-180) (Global Roation)
 	// Returns 0 if character is looking straight to the worlds X Rotation

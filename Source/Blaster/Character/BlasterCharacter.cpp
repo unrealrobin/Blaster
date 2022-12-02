@@ -12,6 +12,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
+#include "Blaster/Blaster.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -41,8 +42,10 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 850.f, 0.f);
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	NetUpdateFrequency = 66.f;

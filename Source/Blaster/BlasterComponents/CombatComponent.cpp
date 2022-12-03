@@ -129,11 +129,12 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, 20.f);
 			
 			HUDPackage.CrosshairSpread =
-				0.5f +
+				(0.5f +
 				CrosshairVelocityFactor +
 					CrosshairInAirFactor -
 						CrosshairAimFactor +
-							CrosshairShootingFactor;
+							CrosshairShootingFactor) *
+								CrosshairEnemyFactor;
 			
 			HUD->SetHUDPackage(HUDPackage);
 		}
@@ -260,14 +261,16 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		//Traces straight out and logs hit result based on visibility channel
 		GetWorld()->LineTraceSingleByChannel(TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
-		//Set Crosshair color to read when on Enemy or White as Default
+		//Set Crosshair color to read when on Enemy or White as Default and CrosshairSpread
 		if(TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		{
 			HUDPackage.CrosshairColor = FLinearColor::Red;
+			bAiming ? CrosshairEnemyFactor = 0.085f : CrosshairEnemyFactor = 0.1f;
 		}
 		else
 		{
 			HUDPackage.CrosshairColor = FLinearColor::White;
+			CrosshairEnemyFactor = 1.f;
 		}
 	}
 } 

@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Camera/CameraComponent.h"
+#include "TimerManager.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -50,7 +51,6 @@ void UCombatComponent::BeginPlay()
 	
 }
 
-// Called every frame
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -192,30 +192,61 @@ void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 	}
 }
 
-void UCombatComponent::OnRep_EquippedWeapon()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
-	if (EquippedWeapon && Character)
+	//This is for clients to pass the fire RPC to the server. And if this is called on the server it only invokes on the server.
+	//This is the functionality of a Server RPC
+	MulticastFire(TraceHitTarget);
+}
+
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	// Using Mutlicast RPC from the server, replicated the calls on all of the clients.
+	if(EquippedWeapon == nullptr) return;
+	if(Character)
 	{
-		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Character->bUseControllerRotationYaw = true;
+		Character->PlayFireMontage(bAiming);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	if(EquippedWeapon == nullptr || Character == nullptr) return;
+	bCanFire = true;
+	if(bFireButtonPressed && EquippedWeapon->bAutomatic)
+	{
+		Fire();
+	}
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if(EquippedWeapon == nullptr || Character == nullptr) return;
+	Character->GetWorldTimerManager().SetTimer(FireTimer, this, &UCombatComponent::FireTimerFinished,
+	                                           EquippedWeapon->FireDelay);
+}
+
+void UCombatComponent::Fire()
+{
+	if(bCanFire)
+	{
+		bCanFire = false;
+		if(EquippedWeapon)
+		{
+			CrosshairShootingFactor = 0.2f;
+		}
+		ServerFire(HitTarget);
+		StartFireTimer();
+	}
+	
 }
 
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	//Called locally on the server or client
 	bFireButtonPressed = bPressed;
-	if(bFireButtonPressed)
-	{
-		if(EquippedWeapon)
-		{
-			CrosshairShootingFactor = 0.2f;
-		}
-		// we moved these here because we dont want to trace every frame always, only when firing.
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
-	}
+	Fire();
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
@@ -275,24 +306,6 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	}
 } 
 
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	//This is for clients to pass the fire RPC to the server. And if this is called on the server it only invokes on the server.
-	//This is the functionality of a Server RPC
-	MulticastFire(TraceHitTarget);
-}
-
-void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	// Using Mutlicast RPC from the server, replicated the calls on all of the clients.
-	if(EquippedWeapon == nullptr) return;
-	if(Character)
-	{
-		Character->PlayFireMontage(bAiming);
-		EquippedWeapon->Fire(TraceHitTarget);
-	}
-}
-
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
@@ -315,3 +328,11 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	Character->bUseControllerRotationYaw = true;
 }
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
+}

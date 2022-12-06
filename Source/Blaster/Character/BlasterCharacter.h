@@ -104,6 +104,19 @@ private:
 	float ProxyYaw;
 	float TimeSinceLastMoveReplication;
 	float CalculateSpeed();
+
+	/*
+	 *Player Health
+	 */
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float Health = 100.f;
+
+	//Replication Function that will update the Characters Health to All Clients
+	UFUNCTION()
+	void OnRep_Health();
 public:	
 	
 	void SetOverlappingWeapon(AWeapon* Weapon);

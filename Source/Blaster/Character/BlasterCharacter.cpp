@@ -58,6 +58,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ABlasterCharacter, Health);
 }
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()
@@ -245,12 +246,15 @@ void ABlasterCharacter::AimButtonReleased()
 void ABlasterCharacter::CalculateAO_Pitch()
 {
 	AO_Pitch = GetBaseAimRotation().Pitch;
+	
 	if (AO_Pitch > 90.f && !IsLocallyControlled())
 	{
 		//map pitch from [270-360) to [-90,0)
 		FVector2D InRange(270.f, 360.f);
 		FVector2D OutRange(-90.f, 0.f);
+		
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+		UE_LOG(LogTemp, Warning, TEXT("AO_Pitch Final: %f"), AO_Pitch);
 	}
 }
 
@@ -456,6 +460,10 @@ float ABlasterCharacter::CalculateSpeed()
 	FVector Velocity = GetVelocity();
 	Velocity.Z = 0.f;
 	return Velocity.Size();
+}
+
+void ABlasterCharacter::OnRep_Health()
+{
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

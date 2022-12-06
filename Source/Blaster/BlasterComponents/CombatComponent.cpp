@@ -11,6 +11,7 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "TimerManager.h"
+#include "Math/Vector2D.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -59,7 +60,12 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
-		HitTarget = HitResult.ImpactPoint;
+		HitTarget = HitResult.ImpactPoint.Size() > 0 ? HitResult.ImpactPoint : HitResult.Location ;
+		FString SomeString = HitTarget.ToString();
+		
+		UE_LOG(LogTemp, Error, TEXT("HitResult.ImpactPoint: %s"), *SomeString);
+		UE_LOG(LogTemp, Error, TEXT("HitResult.Location: %s"), *HitResult.Location.ToString());
+		UE_LOG(LogTemp, Error, TEXT("HitResult.ImpactPoint.Size: %f"), HitTarget.Size());
 		
 		SetHUDCrosshairs(DeltaTime);
 		InterpFOV(DeltaTime);
@@ -210,6 +216,15 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 	}
 }
 
+void UCombatComponent::StartFireTimer()
+{
+	if(EquippedWeapon == nullptr || Character == nullptr) return;
+	Character->GetWorldTimerManager().SetTimer(FireTimer,
+		this,
+		&UCombatComponent::FireTimerFinished,
+		EquippedWeapon->FireDelay);
+}
+
 void UCombatComponent::FireTimerFinished()
 {
 	if(EquippedWeapon == nullptr || Character == nullptr) return;
@@ -220,22 +235,13 @@ void UCombatComponent::FireTimerFinished()
 	}
 }
 
-void UCombatComponent::StartFireTimer()
-{
-	if(EquippedWeapon == nullptr || Character == nullptr) return;
-	Character->GetWorldTimerManager().SetTimer(FireTimer, this, &UCombatComponent::FireTimerFinished,
-	                                           EquippedWeapon->FireDelay);
-}
-
 void UCombatComponent::Fire()
 {
-	if(bCanFire)
+	if(bCanFire && EquippedWeapon)
 	{
 		bCanFire = false;
-		if(EquippedWeapon)
-		{
-			CrosshairShootingFactor = 0.2f;
-		}
+		CrosshairShootingFactor = 0.2f;
+	
 		ServerFire(HitTarget);
 		StartFireTimer();
 	}
@@ -282,16 +288,19 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		if(Character)
 		{
 			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
-			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 20.f);
 			
 		}
 		
 		// The Start location pushed out in the World Direction
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;
+		UE_LOG(LogTemp, Warning, TEXT("End of Vector: %s"), *End.ToString());
 
+		
 		//Traces straight out and logs hit result based on visibility channel
 		GetWorld()->LineTraceSingleByChannel(TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
+		
 		//Set Crosshair color to read when on Enemy or White as Default and CrosshairSpread
 		if(TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		{

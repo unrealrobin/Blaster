@@ -2,10 +2,13 @@
 	"RemapUnityFiles": 
 	{
 		"Module.RiderLink.cpp.obj": [
+			"ProtocolFactory.cpp.obj",
+			"RiderLink.cpp.obj",
 			"UE4TypesMarshallers.cpp.obj",
 			"instantiations_UE4Library.cpp.obj",
 			"BlueprintFunction.Generated.cpp.obj",
 			"BlueprintHighlighter.Generated.cpp.obj",
+			"BlueprintReference.Generated.cpp.obj",
 			"ConnectionInfo.Generated.cpp.obj",
 			"EmptyScriptCallStack.Generated.cpp.obj",
 			"IScriptCallStack.Generated.cpp.obj",
@@ -25,15 +28,12 @@
 			"ScriptMsgException.Generated.cpp.obj",
 			"StringRange.Generated.cpp.obj",
 			"UClass.Generated.cpp.obj",
+			"UE4Library.Generated.cpp.obj",
 			"UnableToDisplayScriptCallStack.Generated.cpp.obj",
 			"UnrealLogEvent.Generated.cpp.obj",
 			"instantiations_RdEditorRoot.cpp.obj",
-			"RdEditorRoot.Generated.cpp.obj",
-			"ProtocolFactory.cpp.obj",
-			"RiderLink.cpp.obj",
-			"BlueprintReference.Generated.cpp.obj",
-			"UE4Library.Generated.cpp.obj",
-			"RdEditorModel.Generated.cpp.obj"
+			"RdEditorModel.Generated.cpp.obj",
+			"RdEditorRoot.Generated.cpp.obj"
 		]
 	}
 }

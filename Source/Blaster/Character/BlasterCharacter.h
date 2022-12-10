@@ -114,9 +114,13 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float Health = 100.f;
 
-	//Replication Function that will update the Characters Health to All Clients
+		//Replication Function that will update the Characters Health to All Clients
 	UFUNCTION()
 	void OnRep_Health();
+
+	class ABlasterPlayerController* BlasterPlayerController;
+
+	
 public:	
 	
 	void SetOverlappingWeapon(AWeapon* Weapon);

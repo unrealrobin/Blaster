@@ -75,12 +75,11 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
-
-	if(BlasterPlayerController)
+	
+	UpdateHUDHealth();
+	if(HasAuthority())
 	{
-		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
 	}
 }
 
@@ -364,6 +363,17 @@ void ABlasterCharacter::FireButtonReleased()
 	}
 }
 
+void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatorController, AActor* DamageCauser)
+{
+	//Receive Damage changes our Health Variable, which is a replicated Variable
+	//Which it changes it fires its OnRep_Health function which replicates that data to all the other clients.
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth); //results in the firing of a Replicated Variable (On_RepHealth)
+	UpdateHUDHealth();
+	PlayHitReactMontage(); //Does the montage play twice then?
+	
+}
+
 void ABlasterCharacter::Jump()
 {
 	if(bIsCrouched)
@@ -432,11 +442,6 @@ FVector ABlasterCharacter::GetHitTarget() const
 	return Combat->HitTarget;
 }
 
-void ABlasterCharacter::MulticastHit_Implementation()
-{
-	PlayHitReactMontage();
-}
-
 void ABlasterCharacter::HideCameraIfCharacterClose()
 {
 	//We only need this function to run locally
@@ -471,6 +476,17 @@ float ABlasterCharacter::CalculateSpeed()
 
 void ABlasterCharacter::OnRep_Health()
 {
+	UpdateHUDHealth();
+	PlayHitReactMontage();
+}
+
+void ABlasterCharacter::UpdateHUDHealth()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if(BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

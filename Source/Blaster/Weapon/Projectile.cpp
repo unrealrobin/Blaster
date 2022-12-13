@@ -51,7 +51,7 @@ void AProjectile::BeginPlay()
 	//handles projectile hit events on the server
 	if(HasAuthority())
 	{
-		//when the collision box is hit, we add a dynamic callback function of OnHit()
+		//when the collision box is hit, we add a dynamic callback function of OnHit() (Delegate Call)
 		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 	}
 	
@@ -60,12 +60,7 @@ void AProjectile::BeginPlay()
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
-
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	if(BlasterCharacter)
-	{
-		BlasterCharacter->MulticastHit();
-	}
+	
 	Destroy();
 }
 

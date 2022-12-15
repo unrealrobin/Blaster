@@ -13,6 +13,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
+#include "Blaster/GameMode/BlasterGameMode.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 
 ABlasterCharacter::ABlasterCharacter()
@@ -70,6 +71,11 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	//This only gets fired when we are moving, but if we are standing still we still want this function to fire regularly.
 	//So we track the time since the last call in our Tick function and force call it after a certain time frame
 	TimeSinceLastMoveReplication = 0.f;
+}
+
+void ABlasterCharacter::Elim()
+{
+	//Destroy Character & Respawn, Animations Etc.
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -370,7 +376,18 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	//Which it changes it fires its OnRep_Health function which replicates that data to all the other clients.
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth); //results in the firing of a Replicated Variable (On_RepHealth)
 	UpdateHUDHealth();
-	PlayHitReactMontage(); //Does the montage play twice then?
+	PlayHitReactMontage();
+
+	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	if(BlasterGameMode)
+	{
+		if(Health == 0.f)
+		{
+			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+			ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
+			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackerController );
+		}
+	}
 	
 }
 

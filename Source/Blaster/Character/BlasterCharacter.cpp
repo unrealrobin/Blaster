@@ -73,11 +73,6 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	TimeSinceLastMoveReplication = 0.f;
 }
 
-void ABlasterCharacter::Elim()
-{
-	//Destroy Character & Respawn, Animations Etc.
-}
-
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -152,6 +147,22 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 	
+}
+
+void ABlasterCharacter::PlayElimMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && ElimMontage)
+	{
+		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
+void ABlasterCharacter::Elim_Implementation()
+{
+	//Destroy Character & Respawn, Animations Etc.
+	bEliminated = true;
+	PlayElimMontage();
 }
 
 void ABlasterCharacter::PlayHitReactMontage()

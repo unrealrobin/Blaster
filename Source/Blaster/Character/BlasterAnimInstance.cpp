@@ -39,14 +39,11 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsAccelerating = BlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 	bWeaponEquipped = BlasterCharacter->IsWeaponEquipped();
 	EquippedWeapon = BlasterCharacter->GetEquippedWeapon();
-
-
 	bIsCrouched = BlasterCharacter->bIsCrouched;
 	bAiming = BlasterCharacter->IsAiming();
-
 	TurningInPlace = BlasterCharacter->GetTurningInPlace();
-	
 	bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
+	bEliminated = BlasterCharacter->IsEliminated();
 	
 	//Offset Yaw for Strafing ---
 	//returns the character rotation angles based on the World Rotation. 0-180 & -1-(-180) (Global Roation)
